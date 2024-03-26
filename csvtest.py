@@ -37,17 +37,17 @@ def read():
         # Create a CSV reader object
         csv_reader = csv.reader(file)
         
-        # Iterate over each row in the CSV file
+        # Iterate through each row in the CSV file
         for row in csv_reader:
-            # Convert each 8-bit binary string to a list of integers (bits)
-            byte_data = [int(bit) for bit in row[0]]
+            # Convert each 8-bit binary string to a list of bits
+            bits = [int(bit) for byte in row for bit in byte]
             
             # Append the list of bits to the 2D array
-            data_2d.append(byte_data)
+            data_2d.append(bits)
 
-    # Print the 2D array (optional)
-    for byte in data_2d:
-        print(byte)
+        # Print the 2D array (optional)
+        for bits in data_2d:
+            print(bits)
         
 # Execution of functions
 read()
