@@ -1,8 +1,6 @@
 from tkinter import *
 import serial.tools.list_ports
 import subprocess
-import threading
-import sys
 
 def connect_menu():
     global root, connect_btn, refresh_btn
@@ -20,15 +18,11 @@ def connect_menu():
     refresh_btn = Button(root, text="Refresh", height=2, width=10, command=com_select)
     refresh_btn.grid(column=3 , row=2)
 
-    connect_btn = Button(root, text="Connect", height=2, width=10, state="disabled", command=connection)
+    connect_btn = Button(root, text="Connect", height=2, width=10, state="disabled", command=run_ui)
     connect_btn.grid(column=3 , row=4)
     
     deafult_btn = Button(root, text="Set to default", height=2, width=10, command=default)
     deafult_btn.grid(column=2, row=5)
-    
-    # temp
-    run_btn = Button(root, text="Run", height=2, width=10, command=run_ui())
-    run_btn.grid(column=2, row=6)
     
     baud_select()
     com_select()
@@ -41,7 +35,6 @@ def baud_select():
         "300",
         "600",
         "1200",
-        "2400",
         "2400",
         "4800",
         "9600",
@@ -64,7 +57,7 @@ def baud_select():
 def com_select():
     global clicked_com, coms, drop_com
     ports = serial.tools.list_ports.comports()
-    coms = [com[0] for com in ports] # Extracts only the serial port from the entire name (e.g. only COM3 from the entire name) 
+    coms = [com[0] for com in ports] # extracts only the serial port from the entire name (e.g. only COM3 from the entire name) 
     coms.insert(0, "-")
     try:
         drop_com.destroy()
@@ -76,7 +69,6 @@ def com_select():
     drop_com = OptionMenu(root, clicked_com, *coms, command=connect_check) # clicked_com gets updated with selection in OptionMenu
     drop_com.config(width=20)
     drop_com.grid(column=2, row=2, padx=50)
-    #connect_check(0)
 
 def connect_check(args):
     if "-" in clicked_com.get() or "-" in clicked_bd.get():
@@ -91,33 +83,13 @@ def default():
         clicked_com.set(coms[1])
     except:
         pass
-    
-def connection():
-    global serialData, ser
-    if connect_btn["text"] == "Disconnect":
-        connect_btn["text"] = "Connect"
-        drop_bd["state"] = "active"
-        drop_com["state"] = "active"
-        refresh_btn["state"] = "active"
-        serialData = False
-        
-    else:
-        connect_btn["text"] = "Disconnect"
-        drop_bd["state"] = "disabled"
-        drop_com["state"] = "disabled"
-        refresh_btn["state"] = "disabled"
-        serialData = True
-        t1 = threading.Thread(target=run_ui)
-        t1.daemon=True
-        t1.start() 
           
 def run_ui():
     try:
-        subprocess.Popen([sys.executable, "csvtest.py", clicked_com.get(), clicked_bd.get()])
-        sys.exit()
+        subprocess.run(["python", "csvtest.py", clicked_com.get(), clicked_bd.get()])
     except:
-        print("An error occurred")
+        print("Kill the UI window to exit")
     
-connect_menu()
+connect_menu() # running the main function
 
 root.mainloop()
