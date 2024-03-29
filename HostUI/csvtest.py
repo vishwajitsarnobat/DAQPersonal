@@ -1,32 +1,9 @@
 import csv
-import time
+from datetime import datetime
 import serial
-
-def store():
-    serial_port = 'COM3'  # will be taken from setup page
-    baud_rate = 9600  # will be taken from setup page
-
-    csv_file = 'output.csv'
-
-    ser = serial.Serial(serial_port, baud_rate)  # Initialize serial communication
-
-    # Open the CSV file in append mode ('a') so that existing data is not overwritten
-    with open(csv_file, 'a', newline='') as file:
-        writer = csv.writer(file)
-
-        while True:
-            # Read a line from the serial port
-            line = ser.readline().decode().strip()
-            
-            # Check if the received line is not empty
-            if line:
-                # row = [for val in line.split()]
-                writer.writerow(row)
-                file.flush()  # Flush the buffer to ensure data is written immediately
-
-            time.sleep(0.01)
-
-    ser.close()
+from setup import *
+import sys
+import signal
 
 def read():
     data_2d = []
@@ -41,5 +18,44 @@ def read():
             data_2d.append(converted_row)
 
     print(data_2d)
+    
+def signal_handler(sig, frame):
+    print("Stopping the second program...")
+    sys.exit(0)
+    
+def store():
+    ser = serial.Serial(serial_port, baud_rate)
 
-store()
+    result_list = []
+
+    with open('output.csv', 'a', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        
+        while True:
+            current_time = datetime.now()
+            formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S.%f")
+            result_list.append(formatted_time)
+            line = ser.readline()
+            for byte in line:
+                if byte == ord('0'):
+                    result_list.append(0)
+                elif byte == ord('1'):
+                    result_list.append(1)
+            
+            print(result_list)
+            
+            csv_writer.writerow(result_list)
+            
+            result_list.clear()
+            
+
+serial_port = sys.argv[1]
+baud_rate = sys.argv[2]
+signal.signal(signal.SIGINT, signal_handler)
+
+try:
+        while True:
+            store()
+except KeyboardInterrupt:
+    print("\nCtrl+C detected. Stopping the second program...")
+    sys.exit(0)

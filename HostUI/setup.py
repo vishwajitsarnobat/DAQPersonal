@@ -2,6 +2,7 @@ from tkinter import *
 import serial.tools.list_ports
 import subprocess
 import threading
+import sys
 
 def connect_menu():
     global root, connect_btn, refresh_btn
@@ -109,19 +110,11 @@ def connection():
         t1 = threading.Thread(target=run_ui)
         t1.daemon=True
         t1.start() 
-        
-def readSerial():
-    while serialData:
-        port = clicked_com.get()
-        baud = clicked_bd.get()
-        ser = serial.Serial(port, baud, timeout=0)
-        bits = ser.readline()
-        data = (bits.decode('UTF-8'))
-        print(data)
           
-def run_ui(): # Needs to be modified to be able to send clicked_com and clicked_bd as arguments
+def run_ui():
     try:
-        subprocess.run(["python", "ui.py"])
+        subprocess.Popen([sys.executable, "csvtest.py", clicked_com.get(), clicked_bd.get()])
+        sys.exit()
     except:
         print("An error occurred")
     
