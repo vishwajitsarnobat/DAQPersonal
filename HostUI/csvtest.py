@@ -5,15 +5,23 @@ import sys
 import signal
 
 def read():
+    serial_port = sys.argv[1]
+    baud_rate = sys.argv[2]
+    signal.signal(signal.SIGINT, signal_handler)
+    ser = serial.Serial(serial_port, baud_rate)
+    
     dataarr = []
     csv_file = 'input.csv'
 
     with open(csv_file, 'r') as file:
         csv_reader = csv.reader(file)
         for data in csv_reader:
-            dataarr.append(data)
+            dataarr.extend(data)
 
-    print(dataarr)
+    data_arr_to_bytes = bytes(map(int, dataarr))
+    ser.write(data_arr_to_bytes)
+    ser.close()
+    print(data_arr_to_bytes)
 
     
 def signal_handler(sig, frame):
