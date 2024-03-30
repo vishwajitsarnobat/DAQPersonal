@@ -16,17 +16,11 @@ def read():
     with open(csv_file, 'r') as file:
         csv_reader = csv.reader(file)
         for data in csv_reader:
-            dataarr.extend(data)
+            dataarr.append(bytes(data))
 
-    data_arr_to_bytes = bytes(map(int, dataarr))
-    ser.write(data_arr_to_bytes)
+    ser.write(dataarr)
     ser.close()
-    print(data_arr_to_bytes)
-
-    
-def signal_handler(sig, frame):
-    print("Stopped executing the second program...")
-    sys.exit(0)
+    print(dataarr)
     
 def store():
     serial_port = sys.argv[1]
@@ -56,4 +50,4 @@ def store():
             result_list.clear()
 
 # executing main programs
-read()
+store()

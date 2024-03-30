@@ -1,11 +1,15 @@
 from tkinter import *
 import serial.tools.list_ports
-import subprocess
+import serial
+from database import *
+import csv
 
 def connect_menu():
-    global root, connect_btn, refresh_btn
+    global root, connect_btn, refresh_btn, deafult_btn, read_btn, store_btn, flag, stop_store_btn
+    flag = True
+
     root = Tk()
-    root.title("Port Setup")
+    root.title("DAQ UI")
     root.geometry("500x500")
     root.config(bg="white")
 
@@ -18,11 +22,20 @@ def connect_menu():
     refresh_btn = Button(root, text="Refresh", height=2, width=10, command=com_select)
     refresh_btn.grid(column=3 , row=2)
 
-    connect_btn = Button(root, text="Connect", height=2, width=10, state="disabled", command=run_ui)
+    connect_btn = Button(root, text="Connect", height=2, width=10, state='disabled', command=connect)
     connect_btn.grid(column=3 , row=4)
     
     deafult_btn = Button(root, text="Set to default", height=2, width=10, command=default)
     deafult_btn.grid(column=2, row=5)
+
+    store_btn = Button(root, text="Store to CSV", height=2, width=12, state="disabled", command=store)
+    store_btn.grid(column=1, row=8)
+
+    stop_store_btn = Button(root, text="Stop", height=2, width=12, state='disabled', command=stop_store)
+    stop_store_btn.grid(column=3, row=8)
+
+    read_btn = Button(root, text="Read from CSV", height=2, width=12, state="disabled", command=read)
+    read_btn.grid(column=2, row=10)
     
     baud_select()
     com_select()
@@ -84,12 +97,66 @@ def default():
     except:
         pass
           
-def run_ui():
-    try:
-        subprocess.run(["python", "csvtest.py", clicked_com.get(), clicked_bd.get()])
-    except:
-        print("Kill the UI window to exit")
+def connect():
+    if (connect_btn.cget('text') == "Connect"):
+        connect_btn.config(text="Disconnect")
+        refresh_btn.config(state='disabled')
+        deafult_btn.config(state='disabled')
+        drop_bd.config(state='disabled')
+        drop_com.config(state='disabled')
+        read_btn.config(state='active')
+        store_btn.config(state='active')
+
+    else:
+        connect_btn.config(text="Connect")
+        refresh_btn.config(state='active')
+        deafult_btn.config(state='active')
+        drop_bd.config(state='active')
+        drop_com.config(state='active')
+        read_btn.config(state='disabled')
+        store_btn.config(state='disabled')
+
+def read():
+    serial_port = clicked_com.get()
+    baud_rate = clicked_bd.get()
+    ser = serial.Serial(serial_port, baud_rate)
+    dataarr = []
+    csv_file = 'input.csv'
+
+    with open(csv_file, 'r') as file:
+        csv_reader = csv.reader(file)
+        for data in csv_reader:
+            dataarr.append(bytes(data))
+
+    ser.write(dataarr)
+    ser.close()
+    print(dataarr)
     
+def store():
+    # serial_port = clicked_com.get()
+    # baud_rate = clicked_bd.get()
+    # ser = serial.Serial(serial_port, baud_rate)
+    # print("Storing pin data into the database...")
+
+    # database_connect()
+    # while flag:
+    #     database_store()
+    #     root.update()
+    #     time.sleep(0.01)
+    # database_disconnect()
+    stop_store_btn.config(state='active')
+    csv_file = 'output.csv'
+    result_list = ["Hello", 1, 3, 4, 5, 6, 7, 4, 8, 7]
+    with open(csv_file, 'a', newline='') as file:
+        csv_writer = csv.writer(file)
+        while flag:
+            root.update()
+            csv_writer.writerow(result_list)
+
+def stop_store():
+    flag = False
+    stop_store_btn.config(state='disabled')
+
 connect_menu() # running the main function
 
 root.mainloop()
