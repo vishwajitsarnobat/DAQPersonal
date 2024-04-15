@@ -5,9 +5,9 @@ from database import *
 import csv
 
 def connect_menu():
-    global root, connect_btn, refresh_btn, deafult_btn, read_btn, store_btn, flag, stop_store_btn
+    global root, connect_btn, refresh_btn, deafult_btn, read_btn, store_btn, flag, stop_store_btn, canvas
     flag = True
-
+    
     root = Tk()
     root.title("DAQ UI")
     root.geometry("500x500")
@@ -35,10 +35,23 @@ def connect_menu():
     stop_store_btn.grid(column=3, row=8)
 
     read_btn = Button(root, text="Read from CSV", height=2, width=12, state='disabled', command=read)
-    read_btn.grid(column=2, row=10)
+    read_btn.grid(column=1, row=10)
+
+    canvas = Canvas(root, bg="grey")
+    canvas.grid(row=12, column=0, columnspan=99, sticky="nsew")  # Spanning all columns
+
+    # Configure rows and columns to resize with the window
+    for i in range(12):
+        root.grid_rowconfigure(i, weight=1)
+    for i in range(99):
+        root.grid_columnconfigure(i, weight=1)
     
     baud_select()
     com_select()
+    
+
+def resize_canvas(event):
+    canvas.config(width=event.width, height=event.height)
     
 def baud_select():
     global clicked_bd, drop_bd
