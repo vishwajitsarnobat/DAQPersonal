@@ -6,7 +6,7 @@ conn = sqlite3.connect('daq.db')
 # Create a cursor object
 cursor = conn.cursor()
 
-# Execute a DELETE query to delete all data from a table
+# To empty the database
 # cursor.execute("DELETE FROM PINDATA") 
 # conn.commit()
 
