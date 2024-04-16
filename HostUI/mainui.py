@@ -2,6 +2,7 @@ from tkinter import *
 import serial.tools.list_ports
 import serial
 from database import *
+from csv_functions import *
 import csv
 
 def connect_menu():
@@ -128,22 +129,6 @@ def connect():
         drop_com.config(state='active')
         read_btn.config(state='disabled')
         store_btn.config(state='disabled')
-
-def read():
-    serial_port = clicked_com.get()
-    baud_rate = clicked_bd.get()
-    ser = serial.Serial(serial_port, baud_rate)
-    dataarr = []
-    csv_file = 'input.csv'
-
-    with open(csv_file, 'r') as file:
-        csv_reader = csv.reader(file)
-        for data in csv_reader:
-            dataarr.append(bytes(data))
-
-    ser.write(dataarr)
-    ser.close()
-    print(dataarr)
     
 def store():
     stop_store_btn.config(state='active')
