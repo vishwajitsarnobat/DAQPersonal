@@ -1,62 +1,14 @@
-from tkinter import *
+import tkinter as tk
 import serial.tools.list_ports
 import serial
 from database import *
 from csv_functions import *
 import csv
+import ttkbootstrap as ttk
 
-def connect_menu():
-    global root, connect_btn, refresh_btn, deafult_btn, read_btn, store_btn, flag, stop_store_btn, canvas
-    flag = True
-    
-    root = Tk()
-    root.title("DAQ UI")
-    root.geometry("500x500")
-    root.config(bg="white")
-
-    port_label = Label(root, text="Available Port(s): ", bg="white")
-    port_label.grid(column=1, row=2, pady=20, padx=10)
-
-    port_bd = Label(root, text="Baud Rate: ", bg="white")
-    port_bd.grid(column=1, row=3, pady=20, padx=10)
-
-    refresh_btn = Button(root, text="Refresh", height=2, width=10, command=com_select)
-    refresh_btn.grid(column=3 , row=2)
-
-    connect_btn = Button(root, text="Connect", height=2, width=10, state='disabled', command=connect)
-    connect_btn.grid(column=3 , row=4)
-    
-    deafult_btn = Button(root, text="Set to default", height=2, width=10, command=default)
-    deafult_btn.grid(column=2, row=5)
-
-    store_btn = Button(root, text="Store to DB", height=2, width=12, state='disabled', command=store)
-    store_btn.grid(column=1, row=8)
-
-    stop_store_btn = Button(root, text="Stop", height=2, width=12, state='disabled', command=stop_store)
-    stop_store_btn.grid(column=3, row=8)
-
-    read_btn = Button(root, text="Read from CSV", height=2, width=12, state='disabled', command=read)
-    read_btn.grid(column=1, row=10)
-
-    canvas = Canvas(root, bg="grey")
-    canvas.grid(row=12, column=0, columnspan=99, sticky="nsew")  # Spanning all columns
-
-    # Configure rows and columns to resize with the window
-    for i in range(12):
-        root.grid_rowconfigure(i, weight=1)
-    for i in range(99):
-        root.grid_columnconfigure(i, weight=1)
-    
-    baud_select()
-    com_select()
-    
-
-def resize_canvas(event):
-    canvas.config(width=event.width, height=event.height)
-    
 def baud_select():
     global clicked_bd, drop_bd
-    clicked_bd = StringVar()
+    clicked_bd = ttk.StringVar()
     bds = [
         "-",
         "300",
@@ -77,9 +29,9 @@ def baud_select():
     ]
     clicked_bd.set(bds[0])
     
-    drop_bd = OptionMenu(root, clicked_bd, *bds, command=connect_check) # clicked_bd will be updated with OptionMenu
+    drop_bd = ttk.OptionMenu(frame1, clicked_bd, *bds, command=connect_check) # clicked_bd will be updated with OptionMenu
     drop_bd.config(width=20)
-    drop_bd.grid(column=2, row=3, padx=50)
+    drop_bd.pack(side = 'left', padx = 10)
     
 def com_select():
     global clicked_com, coms, drop_com
@@ -91,11 +43,11 @@ def com_select():
     except:
         pass
     
-    clicked_com = StringVar()
+    clicked_com = ttk.StringVar()
     clicked_com.set(coms[0])
-    drop_com = OptionMenu(root, clicked_com, *coms, command=connect_check) # clicked_com gets updated with selection in OptionMenu
+    drop_com = ttk.OptionMenu(frame2, clicked_com, *coms, command=connect_check) # clicked_com gets updated with selection in OptionMenu
     drop_com.config(width=20)
-    drop_com.grid(column=2, row=2, padx=50)
+    drop_com.pack(side = 'left', padx = 10)
 
 def connect_check(args):
     if "-" in clicked_com.get() or "-" in clicked_bd.get():
@@ -148,6 +100,49 @@ def stop_store():
     flag = False
     stop_store_btn.config(state='disabled')
 
-connect_menu() # running the ui
+flag = True
+
+root = ttk.Window(themename = 'darkly')
+root.title("DAQ UI")
+root.geometry("500x500")
+
+frame1 = ttk.Frame(root)
+frame2 = ttk.Frame(root)
+frame3 = ttk.Frame(root)
+frame4 = ttk.Frame(root)
+frame5 = ttk.Frame(root)
+
+port_label = ttk.Label(frame1, text="Available Port(s): ", font = 'Calibri 16')
+port_label.pack(side = 'left', padx = 10)
+
+refresh_btn = ttk.Button(frame3, text="Refresh", command=com_select)
+refresh_btn.pack(side = 'left', padx = 10)
+
+port_bd = ttk.Label(frame2, text="Baud Rate: ", font = 'Calibri 16')
+port_bd.pack(side = 'left', padx = 10)
+
+connect_btn = ttk.Button(frame3, text="Connect", command=connect)
+connect_btn.pack(side = 'left', padx = 10)
+
+deafult_btn = ttk.Button(frame3, text="Set to default", command=default)
+deafult_btn.pack(side = 'left', padx = 10)
+
+store_btn = ttk.Button(frame4, text="Store to DB", state='disabled', command=store)
+store_btn.pack(side = 'left', padx = 10)
+
+stop_store_btn = ttk.Button(frame4, text="Stop", state='disabled', command=stop_store)
+stop_store_btn.pack(side = 'left', padx = 10)
+
+read_btn = ttk.Button(frame5, text="Read from CSV", state='disabled', command=read)
+read_btn.pack(side = 'left', padx = 10)
+
+frame1.pack(pady = 10)
+frame2.pack(pady = 10)
+frame3.pack(pady = 20)
+frame4.pack(pady = 10)
+frame5.pack(pady = 10)
+
+baud_select()
+com_select()
 
 root.mainloop()
