@@ -29,7 +29,7 @@ def baud_select():
     ]
     clicked_bd.set(bds[0])
     
-    drop_bd = ttk.OptionMenu(frame1, clicked_bd, *bds, command=connect_check) # clicked_bd will be updated with OptionMenu
+    drop_bd = ttk.OptionMenu(frame2, clicked_bd, *bds, command=connect_check) # clicked_bd will be updated with OptionMenu
     drop_bd.config(width=20)
     drop_bd.pack(side = 'left', padx = 10)
     
@@ -45,7 +45,7 @@ def com_select():
     
     clicked_com = ttk.StringVar()
     clicked_com.set(coms[0])
-    drop_com = ttk.OptionMenu(frame2, clicked_com, *coms, command=connect_check) # clicked_com gets updated with selection in OptionMenu
+    drop_com = ttk.OptionMenu(frame1, clicked_com, *coms, command=connect_check) # clicked_com gets updated with selection in OptionMenu
     drop_com.config(width=20)
     drop_com.pack(side = 'left', padx = 10)
 
@@ -65,25 +65,25 @@ def default():
           
 def connect():
     if (connect_btn.cget('text') == "Connect"):
-        connect_btn.config(text="Disconnect")
-        refresh_btn.config(state='disabled')
-        deafult_btn.config(state='disabled')
-        drop_bd.config(state='disabled')
-        drop_com.config(state='disabled')
-        read_btn.config(state='active')
-        store_btn.config(state='active')
+        connect_btn['text'] = "Disconnect"
+        refresh_btn['state'] = 'disabled'
+        deafult_btn['state'] = 'disabled'
+        drop_bd['state'] = 'disabled'
+        drop_com['state'] = 'disabled'
+        read_btn['state'] = 'active'
+        store_btn['state'] = 'active'
 
     else:
-        connect_btn.config(text="Connect")
-        refresh_btn.config(state='active')
-        deafult_btn.config(state='active')
-        drop_bd.config(state='active')
-        drop_com.config(state='active')
-        read_btn.config(state='disabled')
-        store_btn.config(state='disabled')
+        connect_btn['text'] = "Connect"
+        refresh_btn['state'] = 'active'
+        deafult_btn['state'] = 'active'
+        drop_bd['state'] = 'active'
+        drop_com['state'] = 'active'
+        read_btn['state'] = 'disabled'
+        store_btn['state'] = 'disabled'
     
 def store():
-    stop_store_btn.config(state='active')
+    stop_store_btn['state'] = 'disabled'
     serial_port = clicked_com.get()
     baud_rate = clicked_bd.get()
     ser = serial.Serial(serial_port, baud_rate)
@@ -98,7 +98,7 @@ def store():
 def stop_store():
     global flag
     flag = False
-    stop_store_btn.config(state='disabled')
+    stop_store_btn['state'] = 'disabled'
 
 flag = True
 
