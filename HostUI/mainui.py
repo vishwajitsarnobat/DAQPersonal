@@ -103,7 +103,7 @@ def connect_check(args):
         connect_btn["state"] = "active"
     
 def default():
-    clicked_bd.set("9600")
+    clicked_bd.set("115200")
     connect_btn["state"] = "active"
     try:
         clicked_com.set(coms[1])
