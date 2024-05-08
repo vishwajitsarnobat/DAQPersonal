@@ -18,7 +18,6 @@ def read():
 
     ser.write(dataarr)
     ser.close()
-    print(dataarr)
     
 def store():
     serial_port = sys.argv[1]
@@ -44,4 +43,3 @@ def store():
             
             print(result_list)
             csv_writer.writerow(result_list)
-            result_list.clear()
