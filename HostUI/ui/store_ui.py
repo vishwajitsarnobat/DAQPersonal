@@ -1,8 +1,8 @@
 import ttkbootstrap as ttk
 import serial.tools.list_ports
 import serial
-import ui.database_utils as database_utils
-import ui.csv_utils as csv_utils
+import database_utils
+import csv_utils
 
 def baud_select():
     global clicked_bd, drop_bd

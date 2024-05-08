@@ -1,5 +1,5 @@
 import ttkbootstrap as ttk
-import ui.file_utils as file_utils
+import file_utils
 
 # some required functions for this specific program
 def load_file():
