@@ -92,6 +92,7 @@ def store():
     serial_port = clicked_com.get()
     baud_rate = clicked_bd.get()
     ser = serial.Serial(serial_port, baud_rate)
+    data_displayer.append(ser)
     print("Storing pin data into the database...")
 
     database_utils.database_connect() # connect
@@ -162,6 +163,7 @@ csv_stop_btn = ttk.Button(frame5, text="Stop", state='disabled', command=csv_sto
 csv_stop_btn.pack(side = 'left', padx = 10)
 
 # data displayer
+global data_displayer
 data_displayer = ttk.Text(frame6, height=100, width=150)
 data_displayer.pack()
 
