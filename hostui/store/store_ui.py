@@ -1,6 +1,11 @@
+import sys
+import os
 import ttkbootstrap as ttk
 import serial.tools.list_ports
 import serial
+
+sys.path.append(os.path.abspath('/home/vishwajitsarnobat/Workspace/daqpersonal/hostui/utils'))
+
 import database_utils
 import csv_utils
 

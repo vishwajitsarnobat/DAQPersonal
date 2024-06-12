@@ -1,4 +1,9 @@
+import sys
+import os
 import ttkbootstrap as ttk
+
+sys.path.append(os.path.abspath('/home/vishwajitsarnobat/Workspace/daqpersonal/hostui/utils'))
+
 import file_utils
 
 # some required functions for this specific program
