@@ -41,5 +41,7 @@ def store():
                 elif byte == ord('1'):
                     result_list.append(1)
             
-            print(result_list)
+            # print(result_list)
+            data_displayer.insert("end", ' '.join(map(str, result_list)))
+            data_displayer.see("end") # displays the end of data_displayer
             csv_writer.writerow(result_list)

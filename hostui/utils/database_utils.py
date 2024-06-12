@@ -33,6 +33,9 @@ def database_store(ser):
     formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S.%f")
     result_list.append(formatted_time)
     line = ser.readline().decode('utf-8')
+    data_displayer.insert("end", line)
+    data_displayer.see("end") # displays the end of data_displayer
+
     for bit in line: 
         result_list.append(bit)
     # print(result_list) 
