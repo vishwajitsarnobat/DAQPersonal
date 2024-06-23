@@ -2,7 +2,7 @@ import sys
 import os
 import ttkbootstrap as ttk
 
-sys.path.append(os.path.abspath('/home/vishwajitsarnobat/Workspace/daqpersonal/hostui/utils'))
+sys.path.append(os.path.abspath('/home/vishwajitsarnobat/workspace/daqpersonal/hostui/utils'))
 
 import file_utils
 
