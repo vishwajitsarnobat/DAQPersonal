@@ -1,11 +1,6 @@
-import sys
-import os
 import ttkbootstrap as ttk
-
-sys.path.append(os.path.abspath('/home/vishwajitsarnobat/workspace/daqpersonal/hostui'))
-
-import file.file_ui
-import store.store_ui
+from ..file import file_ui
+from ..store import store_ui
 
 root = ttk.Window(themename = 'darkly')
 root.title("DAQ UI")
