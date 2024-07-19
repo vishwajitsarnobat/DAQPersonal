@@ -1,8 +1,11 @@
 import ttkbootstrap as ttk
 import serial.tools.list_ports
 import serial
+import sys
 
+sys.path.append(r'C:\Users\sambh\Desktop\workspace\DAQPersonal\hostui')
 from utils import database_utils, csv_utils
+
 def baud_select():
     global clicked_bd, drop_bd
     clicked_bd = ttk.StringVar()
