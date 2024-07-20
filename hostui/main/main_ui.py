@@ -12,6 +12,7 @@ from store.store_ui import DAQStoreUI
 class MainApplication:
     def __init__(self, root):
         self.root = root
+        self.root.state('zoomed')
         self.init_ui()
 
     def init_ui(self):

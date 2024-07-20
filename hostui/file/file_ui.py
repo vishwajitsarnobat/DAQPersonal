@@ -14,8 +14,8 @@ class DAQFileUI:
 
     def init_ui(self):
         """Initialize the user interface components."""
-        self.root.title("DAQ File Management")
-        self.root.geometry("1200x800")
+        # self.root.title("DAQ File Management")
+        # self.root.geometry("1200x800")
 
         # Create and pack frames
         self.create_frames()

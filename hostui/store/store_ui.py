@@ -10,8 +10,8 @@ from utils import database_utils, csv_utils
 class DAQStoreUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("DAQ Storage Management")
-        self.root.geometry("1200x800")
+        # self.root.title("DAQ Storage Management")
+        # self.root.geometry("1200x800")
         self.init_ui()
 
     def init_ui(self):
