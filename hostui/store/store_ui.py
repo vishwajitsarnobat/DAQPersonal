@@ -2,178 +2,169 @@ import ttkbootstrap as ttk
 import serial.tools.list_ports
 import serial
 import sys
+from tkinter import messagebox
 
 sys.path.append(r'C:\Users\sambh\Desktop\workspace\DAQPersonal\hostui')
 from utils import database_utils, csv_utils
 
-def baud_select():
-    global clicked_bd, drop_bd
-    clicked_bd = ttk.StringVar()
-    bds = [
-        "-",
-        "300",
-        "600",
-        "1200",
-        "2400",
-        "4800",
-        "9600",
-        "14400",
-        "19200",
-        "28800",
-        "38400",
-        "56000",
-        "57600",
-        "115200",
-        "128000",
-        "256000"
-    ]
-    clicked_bd.set(bds[0])
-    
-    drop_bd = ttk.OptionMenu(frame2, clicked_bd, *bds, command=connect_check) # clicked_bd will be updated with OptionMenu
-    drop_bd.config(width=20)
-    drop_bd.pack(side = 'left', padx = 10)
-    
-def com_select():
-    global clicked_com, coms, drop_com
-    ports = serial.tools.list_ports.comports()
-    coms = [com[0] for com in ports] # extracts only the serial port from the entire name (e.g. only COM3 from the entire name) 
-    coms.insert(0, "-")
-    try:
-        drop_com.destroy()
-    except:
-        pass
-    
-    clicked_com = ttk.StringVar()
-    clicked_com.set(coms[0])
-    drop_com = ttk.OptionMenu(frame1, clicked_com, *coms, command=connect_check) # clicked_com gets updated with selection in OptionMenu
-    drop_com.config(width=20)
-    drop_com.pack(side = 'left', padx = 10)
+class DAQStoreUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("DAQ Storage Management")
+        self.root.geometry("1200x800")
+        self.init_ui()
 
-def connect_check(args):
-    if "-" in clicked_com.get() or "-" in clicked_bd.get():
-        connect_btn["state"] = "disabled"
-    else:
-        connect_btn["state"] = "active"
-    
-def default():
-    clicked_bd.set("115200")
-    connect_btn["state"] = "active"
-    try:
-        clicked_com.set(coms[1])
-    except:
-        pass
-          
-def connect():
-    if (connect_btn.cget('text') == "Connect"):
-        connect_btn['text'] = "Disconnect"
-        refresh_btn['state'] = 'disabled'
-        deafult_btn['state'] = 'disabled'
-        drop_bd['state'] = 'disabled'
-        drop_com['state'] = 'disabled'
-        # read_btn['state'] = 'active'
-        store_btn['state'] = 'active'
-        csv_store_btn['state'] = 'active'
+    def init_ui(self):
+        self.create_frames()
+        self.create_widgets()
+        self.pack_frames()
+        self.com_select()
+        self.baud_select()
 
-    else:
-        connect_btn['text'] = "Connect"
-        refresh_btn['state'] = 'active'
-        deafult_btn['state'] = 'active'
-        drop_bd['state'] = 'active'
-        drop_com['state'] = 'active'
-        csv_store_btn['state'] = 'disabled'
-        store_btn['state'] = 'disabled'
-    
-def store():
-    stop_store_btn['state'] = 'active'
-    store_btn['state'] = 'disabled'
-    serial_port = clicked_com.get()
-    baud_rate = clicked_bd.get()
-    ser = serial.Serial(serial_port, baud_rate)
-    data_displayer.append(ser)
-    print("Storing pin data into the database...")
+    def create_frames(self):
+        self.frame1 = ttk.Frame(self.root)
+        self.frame2 = ttk.Frame(self.root)
+        self.frame3 = ttk.Frame(self.root)
+        self.frame4 = ttk.Frame(self.root)
+        self.frame5 = ttk.Frame(self.root)
+        self.frame6 = ttk.Frame(self.root)
 
-    database_utils.database_connect() # connect
-    while flag: # store
-        database_utils.database_store(ser)
-        store_root.update()
-    database_utils.database_disconnect() # disconnect
+    def create_widgets(self):
+        self.create_port_widgets()
+        self.create_baud_widgets()
+        self.create_control_buttons()
+        self.create_store_buttons()
+        self.create_data_displayer()
 
-def stop_store():
-    global flag
-    flag = False
-    store_btn['state'] = 'active'
-    stop_store_btn['state'] = 'disabled'
-    
-def csv_store():
-    csv_stop_btn['state'] = 'active'
-    csv_store_btn['state'] = 'disabled'
-    serial_port = clicked_com.get()
-    baud_rate = clicked_bd.get()
-    ser = serial.Serial(serial_port, baud_rate)
-    print("Storing pin data into the output.csv ...")
+    def create_port_widgets(self):
+        self.port_label = ttk.Label(self.frame1, text="Available Port(s): ", font='Calibri 16')
+        self.port_label.pack(side='left', padx=10)
 
-    csv_utils.store()
-    
-def csv_stop_store():
-    global flag
-    flag = False
-    csv_stop_btn['state'] = 'disabled'
-    csv_store_btn['state'] = 'active'
-            
-store_root = ttk.Window(themename = 'darkly')
-store_root.title("DAQ UI")
-store_root.geometry("500x500")
+    def create_baud_widgets(self):
+        self.port_bd = ttk.Label(self.frame2, text="Baud Rate: ", font='Calibri 16')
+        self.port_bd.pack(side='left', padx=10)
 
-# frames
-frame1 = ttk.Frame(store_root)
-frame2 = ttk.Frame(store_root)
-frame3 = ttk.Frame(store_root)
-frame4 = ttk.Frame(store_root)
-frame5 = ttk.Frame(store_root)
-frame6 = ttk.Frame(store_root)
+    def create_control_buttons(self):
+        self.connect_btn = ttk.Button(self.frame3, text="Connect", state='disabled', command=self.connect)
+        self.connect_btn.pack(side='left', padx=10)
+        self.default_btn = ttk.Button(self.frame3, text="Set to default", command=self.default)
+        self.default_btn.pack(side='left', padx=10)
+        self.refresh_btn = ttk.Button(self.frame3, text="Refresh", command=self.com_select)
+        self.refresh_btn.pack(side='left', padx=10)
 
-port_label = ttk.Label(frame1, text="Available Port(s): ", font = 'Calibri 16')
-port_label.pack(side = 'left', padx = 10)
+    def create_store_buttons(self):
+        self.store_btn = ttk.Button(self.frame4, text="Store to DB", state='disabled', command=self.store)
+        self.store_btn.pack(side='left', padx=10)
+        self.stop_store_btn = ttk.Button(self.frame4, text="Stop", state='disabled', command=self.stop_store)
+        self.stop_store_btn.pack(side='left', padx=10)
+        self.csv_store_btn = ttk.Button(self.frame5, text="Store to CSV", state='disabled', command=self.csv_store)
+        self.csv_store_btn.pack(side='left', padx=10)
+        self.csv_stop_btn = ttk.Button(self.frame5, text="Stop", state='disabled', command=self.csv_stop_store)
+        self.csv_stop_btn.pack(side='left', padx=10)
 
-refresh_btn = ttk.Button(frame3, text="Refresh", command=com_select)
-refresh_btn.pack(side = 'left', padx = 10)
+    def create_data_displayer(self):
+        self.data_displayer = ttk.Text(self.frame6, height=100, width=150)
+        self.data_displayer.pack()
 
-port_bd = ttk.Label(frame2, text="Baud Rate: ", font = 'Calibri 16')
-port_bd.pack(side = 'left', padx = 10)
+    def pack_frames(self):
+        self.frame1.pack(pady=10)
+        self.frame2.pack(pady=10)
+        self.frame3.pack(pady=20)
+        self.frame4.pack(pady=10)
+        self.frame5.pack(pady=10)
+        self.frame6.pack(pady=30)
 
-connect_btn = ttk.Button(frame3, text="Connect", state='disabled', command=connect)
-connect_btn.pack(side = 'left', padx = 10)
+    def baud_select(self):
+        self.clicked_bd = ttk.StringVar()
+        bds = ["-", "300", "600", "1200", "2400", "4800", "9600", "14400", "19200", "28800", "38400", "56000", "57600", "115200", "128000", "256000"]
+        self.clicked_bd.set(bds[0])
+        self.drop_bd = ttk.OptionMenu(self.frame2, self.clicked_bd, *bds, command=self.connect_check)
+        self.drop_bd.config(width=20)
+        self.drop_bd.pack(side='left', padx=10)
 
-deafult_btn = ttk.Button(frame3, text="Set to default", command=default)
-deafult_btn.pack(side = 'left', padx = 10)
+    def com_select(self):
+        self.clicked_com = ttk.StringVar()
+        ports = serial.tools.list_ports.comports()
+        self.coms = [com[0] for com in ports]
+        self.coms.insert(0, "-")
+        self.clicked_com.set(self.coms[0])
+        try:
+            self.drop_com.destroy()
+        except AttributeError:
+            pass
+        self.drop_com = ttk.OptionMenu(self.frame1, self.clicked_com, *self.coms, command=self.connect_check)
+        self.drop_com.config(width=20)
+        self.drop_com.pack(side='left', padx=10)
 
-store_btn = ttk.Button(frame4, text="Store to DB", state='disabled', command=store)
-store_btn.pack(side = 'left', padx = 10)
+    def connect_check(self, args=None):
+        if "-" in self.clicked_com.get() or "-" in self.clicked_bd.get():
+            self.connect_btn["state"] = "disabled"
+        else:
+            self.connect_btn["state"] = "active"
 
-stop_store_btn = ttk.Button(frame4, text="Stop", state='disabled', command=stop_store)
-stop_store_btn.pack(side = 'left', padx = 10)
+    def default(self):
+        if len(self.coms) > 1:
+            self.clicked_bd.set("115200")
+            self.connect_btn["state"] = "active"
+            self.clicked_com.set(self.coms[1])
+        else:
+            messagebox.showerror("Port error", "No device was detected, please make sure device is properly connected")
 
-csv_store_btn = ttk.Button(frame5, text="Store to CSV", state='disabled', command=csv_store)
-csv_store_btn.pack(side = 'left', padx = 10)
+    def connect(self):
+        if self.connect_btn.cget('text') == "Connect":
+            self.connect_btn['text'] = "Disconnect"
+            self.refresh_btn['state'] = 'disabled'
+            self.default_btn['state'] = 'disabled'
+            self.drop_bd['state'] = 'disabled'
+            self.drop_com['state'] = 'disabled'
+            self.store_btn['state'] = 'active'
+            self.csv_store_btn['state'] = 'active'
+        else:
+            self.connect_btn['text'] = "Connect"
+            self.refresh_btn['state'] = 'active'
+            self.default_btn['state'] = 'active'
+            self.drop_bd['state'] = 'active'
+            self.drop_com['state'] = 'active'
+            self.csv_store_btn['state'] = 'disabled'
+            self.store_btn['state'] = 'disabled'
 
-csv_stop_btn = ttk.Button(frame5, text="Stop", state='disabled', command=csv_stop_store)
-csv_stop_btn.pack(side = 'left', padx = 10)
+    def store(self):
+        self.stop_store_btn['state'] = 'active'
+        self.store_btn['state'] = 'disabled'
+        serial_port = self.clicked_com.get()
+        baud_rate = self.clicked_bd.get()
+        ser = serial.Serial(serial_port, baud_rate)
+        self.data_displayer.append(ser)
+        print("Storing pin data into the database...")
+        database_utils.database_connect()
+        flag = True
+        while flag:
+            database_utils.database_store(ser)
+            self.root.update()
+        database_utils.database_disconnect()
 
-# data displayer
-global data_displayer
-data_displayer = ttk.Text(frame6, height=100, width=150)
-data_displayer.pack()
+    def stop_store(self):
+        global flag
+        flag = False
+        self.store_btn['state'] = 'active'
+        self.stop_store_btn['state'] = 'disabled'
 
-# packing frames
-frame1.pack(pady = 10)
-frame2.pack(pady = 10)
-frame3.pack(pady = 20)
-frame4.pack(pady = 10)
-frame5.pack(pady = 10)
-frame6.pack(pady = 30)
-    
-# scan and display the com ports once and the available baud rates 
-com_select()
-baud_select()
+    def csv_store(self):
+        self.csv_stop_btn['state'] = 'active'
+        self.csv_store_btn['state'] = 'disabled'
+        serial_port = self.clicked_com.get()
+        baud_rate = self.clicked_bd.get()
+        ser = serial.Serial(serial_port, baud_rate)
+        print("Storing pin data into the output.csv ...")
+        csv_utils.store()
 
-store_root.mainloop()
+    def csv_stop_store(self):
+        global flag
+        flag = False
+        self.csv_stop_btn['state'] = 'disabled'
+        self.csv_store_btn['state'] = 'active'
+
+if __name__ == "__main__":
+    root = ttk.Window(themename='darkly')
+    DAQStoreUI(root)
+    root.mainloop()
