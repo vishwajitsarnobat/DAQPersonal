@@ -2,6 +2,7 @@ import sys
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from tkinter import messagebox
+import os
 
 # Add the path to the hostui module
 sys.path.append(r'C:\Users\sambh\Desktop\workspace\DAQPersonal\hostui')
@@ -56,17 +57,20 @@ class DAQFileUI:
         t3.pack(side="left", padx=5)
 
     def create_buttons(self):
-        load_file_btn = ttk.Button(self.frame1, text="Load file", command=self.load_file)
-        load_file_btn.pack(side="left")
+        load_file_btn = ttk.Button(self.frame1, text="Load file into displayer", command=self.load_file)
+        load_file_btn.pack(side="left", padx=10)
+
+        create_file_btn = ttk.Button(self.frame1, text="Create file for displayer data", command=self.create_file)
+        create_file_btn.pack(side="right", padx=10)
 
         append_button = ttk.Button(self.frame4, text="Append data to file", command=self.append_data)
         append_button.pack(side="right", padx=10)
 
-        sync_df__button = ttk.Button(self.frame4, text="Sync displayer with file", command=self.read_file)
-        sync_df__button.pack(side="right", padx=10)
-
-        sync_fd__button = ttk.Button(self.frame4, text="Sync file with displayer", command=self.read_file)
+        sync_fd__button = ttk.Button(self.frame4, text="Sync displayer with file", command=self.sync_fd)
         sync_fd__button.pack(side="right", padx=10)
+
+        sync_df__button = ttk.Button(self.frame4, text="Sync file with displayer", command=self.sync_df)
+        sync_df__button.pack(side="right", padx=10)
 
         send_button = ttk.Button(self.frame4, text="Send")
         send_button.pack(side="right", padx=10)
@@ -85,13 +89,29 @@ class DAQFileUI:
     def load_file(self):
         self.file_path = file_utils.choose_file()
 
-    def read_file(self):
+    def create_file(self):
+        data = self.data_displayer.get("1.0", END)
+        if data.strip():
+            file_path = file_utils.create_new_file()
+            if file_path:
+                file_utils.write_file(file_path, data)
+        else:
+            messagebox.showwarning("No content error", "Cannot make an empty file, put some data on displayer first")
+
+    def sync_fd(self): # put content of file in displayer
         if self.file_path:
             content = file_utils.read_file(self.file_path)
             self.data_displayer.delete('1.0', END)
             self.data_displayer.insert(END, content)
         else:
-            ttk.messagebox.showinfo("No file selected", "Please load a file first.")
+            messagebox.showerror("No file error", "Please select a file first")
+
+    def sync_df(self): # put content of displayer in file
+        data = self.data_displayer.get("1.0", END)
+        if data.strip():
+            file_utils.write_file(self.file_path, data)
+        else:
+            messagebox.showwarning("No content error", "Cannot make an empty file, put some data on displayer first")
 
     def append_data(self):
         if self.file_path:
@@ -101,6 +121,6 @@ class DAQFileUI:
             messagebox.showerror("No file error", "Please select a file first")
 
 if __name__ == "__main__":
-    root = ttk.Window(themename='darkly')
+    root = ttk.Window(themename='superhero')
     DAQFileUI(root)
     root.mainloop()

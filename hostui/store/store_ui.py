@@ -201,6 +201,6 @@ class DAQStoreUI:
         self.data_displayer.insert('end', data)
 
 if __name__ == "__main__":
-    root = ttk.Window(themename='darkly')
+    root = ttk.Window(themename='superhero')
     DAQStoreUI(root)
     root.mainloop()

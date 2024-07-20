@@ -38,6 +38,6 @@ class MainApplication:
         DAQStoreUI(self.store_tab)
 
 if __name__ == "__main__":
-    root = ttk.Window(themename='darkly')
+    root = ttk.Window(themename='superhero')
     MainApplication(root)
     root.mainloop()

@@ -4,6 +4,14 @@ def choose_file():
     file_path = fd.askopenfilename(initialdir="/", title="Select a file", filetypes=(("Text file", "*.txt*"), ("CSV file", "*.csv*")))
     return file_path
 
+def create_new_file():
+    file_path = fd.asksaveasfilename(
+        defaultextension=".txt",  # Default file extension
+        filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+        title="Save As"
+    )
+    return file_path
+
 def read_file(file_path):
     with open(file_path, 'r') as file:
         data = file.read()
