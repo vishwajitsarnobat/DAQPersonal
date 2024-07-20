@@ -5,7 +5,7 @@ import sys
 from tkinter import messagebox
 
 sys.path.append(r'C:\Users\sambh\Desktop\workspace\DAQPersonal\hostui')
-from utils import database_utils, csv_utils
+from utils import database_utils, csv_utils, text_utils
 
 class DAQStoreUI:
     def __init__(self, root):
@@ -28,6 +28,7 @@ class DAQStoreUI:
         self.frame4 = ttk.Frame(self.root)
         self.frame5 = ttk.Frame(self.root)
         self.frame6 = ttk.Frame(self.root)
+        self.frame7 = ttk.Frame(self.root)
 
     def create_widgets(self):
         self.create_port_widgets()
@@ -41,8 +42,8 @@ class DAQStoreUI:
         self.port_label.pack(side='left', padx=10)
 
     def create_baud_widgets(self):
-        self.port_bd = ttk.Label(self.frame2, text="Baud Rate: ", font='Calibri 16')
-        self.port_bd.pack(side='left', padx=10)
+        self.bd_label = ttk.Label(self.frame2, text="Baud Rate: ", font='Calibri 16')
+        self.bd_label.pack(side='left', padx=10)
 
     def create_control_buttons(self):
         self.connect_btn = ttk.Button(self.frame3, text="Connect", state='disabled', command=self.connect)
@@ -61,9 +62,13 @@ class DAQStoreUI:
         self.csv_store_btn.pack(side='left', padx=10)
         self.csv_stop_btn = ttk.Button(self.frame5, text="Stop", state='disabled', command=self.csv_stop_store)
         self.csv_stop_btn.pack(side='left', padx=10)
+        self.text_store_btn = ttk.Button(self.frame6, text="Store to Text file", state='disabled', command=self.text_store)
+        self.text_store_btn.pack(side='left', padx=10)
+        self.text_stop_btn = ttk.Button(self.frame6, text="Stop", state='disabled', command=self.text_stop_store)
+        self.text_stop_btn.pack(side='left', padx=10)
 
     def create_data_displayer(self):
-        self.data_displayer = ttk.Text(self.frame6, height=100, width=150)
+        self.data_displayer = ttk.Text(self.frame7, height=100, width=150)
         self.data_displayer.pack()
 
     def pack_frames(self):
@@ -72,7 +77,8 @@ class DAQStoreUI:
         self.frame3.pack(pady=20)
         self.frame4.pack(pady=10)
         self.frame5.pack(pady=10)
-        self.frame6.pack(pady=30)
+        self.frame6.pack(pady=10)
+        self.frame7.pack(pady=30)
 
     def baud_select(self):
         self.clicked_bd = ttk.StringVar()
@@ -119,6 +125,7 @@ class DAQStoreUI:
             self.drop_com['state'] = 'disabled'
             self.store_btn['state'] = 'active'
             self.csv_store_btn['state'] = 'active'
+            self.text_store_btn['state'] = 'active'
         else:
             self.connect_btn['text'] = "Connect"
             self.refresh_btn['state'] = 'active'
@@ -126,6 +133,7 @@ class DAQStoreUI:
             self.drop_bd['state'] = 'active'
             self.drop_com['state'] = 'active'
             self.csv_store_btn['state'] = 'disabled'
+            self.text_store_btn['state'] = 'disabled'
             self.store_btn['state'] = 'disabled'
 
     def store(self):
@@ -134,12 +142,11 @@ class DAQStoreUI:
         serial_port = self.clicked_com.get()
         baud_rate = self.clicked_bd.get()
         ser = serial.Serial(serial_port, baud_rate)
-        self.data_displayer.append(ser)
-        print("Storing pin data into the database...")
+        messagebox.showinfo("Storing initiated", "Storing pin data into the database ...")
         database_utils.database_connect()
         flag = True
         while flag:
-            database_utils.database_store(ser)
+            self.display(database_utils.database_store(self.read_serial(ser)))
             self.root.update()
         database_utils.database_disconnect()
 
@@ -155,14 +162,43 @@ class DAQStoreUI:
         serial_port = self.clicked_com.get()
         baud_rate = self.clicked_bd.get()
         ser = serial.Serial(serial_port, baud_rate)
-        print("Storing pin data into the output.csv ...")
-        csv_utils.store()
+        messagebox.showinfo("Storing initiated", "Storing pin data into the output.csv ...")
+        flag = True
+        while flag:
+            self.display(csv_utils.store(self.read_serial(ser)))
+            self.root.update()
 
     def csv_stop_store(self):
         global flag
         flag = False
         self.csv_stop_btn['state'] = 'disabled'
         self.csv_store_btn['state'] = 'active'
+
+    def text_store(self):
+        self.text_stop_btn['state'] = 'active'
+        self.text_store_btn['state'] = 'disabled'
+        serial_port = self.clicked_com.get()
+        baud_rate = self.clicked_bd.get()
+        ser = serial.Serial(serial_port, baud_rate)
+        messagebox.showinfo("Storing initiated", "Storing pin data into the output.txt ...")
+        flag = True
+        while flag:
+            self.display(text_utils.store(self.read_serial(ser)))
+            self.root.update()
+
+    def text_stop_store(self):
+        global flag
+        flag = False
+        self.text_stop_btn['state'] = 'disabled'
+        self.text_store_btn['state'] = 'active'
+
+    def read_serial(ser):
+        line = ser.readline()
+        decoded_line = line.decode('utf-8')
+        return decoded_line
+    
+    def display(self, data):
+        self.data_displayer.insert('end', data)
 
 if __name__ == "__main__":
     root = ttk.Window(themename='darkly')

@@ -27,23 +27,22 @@ def database_connect():
     except:
         print("Connected to table 'PINDATA' successfully")
 
-def database_store(ser):
+def database_store(decoded_line):
     result_list = []
+
     current_time = datetime.now()
     formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S.%f")
     result_list.append(formatted_time)
-    line = ser.readline().decode('utf-8')
-    data_displayer.insert("end", line)
-    data_displayer.see("end") # displays the end of data_displayer
 
-    for bit in line: 
-        result_list.append(bit)
-    # print(result_list) 
+    result_list.extend(decoded_line.strip())  # Assuming decoded_line is a string of bits
+
     cursor.execute('''INSERT INTO PINDATA VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', tuple(result_list))
-    result_list.clear()
+    
+    database.commit()
+    return result_list
 
 def database_disconnect():
     if database:
-        database.commit()
+        database.commit() # test if redundant
         database.close()
         print('SQLite Connection closed')
