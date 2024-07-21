@@ -90,8 +90,9 @@ class DAQStoreUI:
 
     def com_select(self):
         self.clicked_com = ttk.StringVar()
-        ports = serial.tools.list_ports.comports()
-        self.coms = [com[0] for com in ports]
+        self.ports = serial.tools.list_ports.comports()
+        self.coms = [com.device for com in self.ports]
+        print(f"Detected ports: {self.coms}")
         self.coms.insert(0, "-")
         self.clicked_com.set(self.coms[0])
         try:
@@ -102,7 +103,7 @@ class DAQStoreUI:
         self.drop_com.config(width=20)
         self.drop_com.pack(side='left', padx=10)
 
-    def connect_check(self, args=None):
+    def connect_check(self):
         if "-" in self.clicked_com.get() or "-" in self.clicked_bd.get():
             self.connect_btn["state"] = "disabled"
         else:

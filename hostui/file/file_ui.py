@@ -2,7 +2,7 @@ import sys
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from tkinter import messagebox
-import os
+import serial
 
 # Add the path to the hostui module
 sys.path.append(r'C:\Users\sambh\Desktop\workspace\DAQPersonal\hostui')
@@ -31,6 +31,7 @@ class DAQFileUI:
         self.frame3 = ttk.Frame(self.root)
         self.frame4 = ttk.Frame(self.root)
         self.frame5 = ttk.Frame(self.root)
+        self.frame6 = ttk.Frame(self.root)
 
     def create_labels(self):
         t1_label = ttk.Label(self.frame2, text="Function code", font='Calibri 16')
@@ -72,11 +73,11 @@ class DAQFileUI:
         sync_df__button = ttk.Button(self.frame4, text="Sync file with displayer", command=self.sync_df)
         sync_df__button.pack(side="right", padx=10)
 
-        send_button = ttk.Button(self.frame4, text="Send")
-        send_button.pack(side="right", padx=10)
+        # send_button = ttk.Button(self.frame6, text="Send and store feedback to database", command=self.send_and_store_data)
+        # send_button.pack(side="right", padx=10)
 
     def create_text_displayer(self):
-        self.data_displayer = ttk.Text(self.frame5, height=100, width=150)
+        self.data_displayer = ttk.Text(self.frame5, height=35, width=150)
         self.data_displayer.pack()
 
     def pack_frames(self):
@@ -85,6 +86,7 @@ class DAQFileUI:
         self.frame3.pack(pady=20)
         self.frame4.pack(pady=10)
         self.frame5.pack(pady=30)
+        self.frame6.pack(pady=10)
 
     def load_file(self):
         self.file_path = file_utils.choose_file()
@@ -119,6 +121,9 @@ class DAQFileUI:
             file_utils.append_file(self.file_path, data)
         else:
             messagebox.showerror("No file error", "Please select a file first")
+
+    # def send_and_store_data():
+        
 
 if __name__ == "__main__":
     root = ttk.Window(themename='superhero')

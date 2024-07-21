@@ -23,12 +23,12 @@ class MainApplication:
         tab_control = ttk.Notebook(self.root)
 
         # Create tabs
-        self.file_tab = ttk.Frame(tab_control)
         self.store_tab = ttk.Frame(tab_control)
+        self.file_tab = ttk.Frame(tab_control)
 
         # Add tabs to the notebook
-        tab_control.add(self.file_tab, text='File Management')
         tab_control.add(self.store_tab, text='Storage Management')
+        tab_control.add(self.file_tab, text='File Management')
 
         # Pack the notebook
         tab_control.pack(expand=1, fill="both", padx=10, pady=10)
