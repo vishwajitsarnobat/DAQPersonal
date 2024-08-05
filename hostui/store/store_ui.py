@@ -4,7 +4,7 @@ import serial
 import sys
 from tkinter import messagebox
 
-sys.path.append(r"C:\Users\Vishwajit Sarnobat\Desktop\workspace\DAQPersonal\hostui")
+sys.path.append('/home/vishwajitsarnobat/workspace/DAQPersonal/hostui')
 from utils import database_utils, csv_utils, text_utils
 
 class DAQStoreUI:

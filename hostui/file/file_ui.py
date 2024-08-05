@@ -4,7 +4,7 @@ from ttkbootstrap.constants import *
 from tkinter import messagebox
 
 # Add the path to the hostui module
-sys.path.append(r"C:\Users\Vishwajit Sarnobat\Desktop\workspace\DAQPersonal\hostui")
+sys.path.append('/home/vishwajitsarnobat/workspace/DAQPersonal/hostui'
 from utils import file_utils
 
 class DAQFileUI:

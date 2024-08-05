@@ -3,7 +3,7 @@ from ttkbootstrap.constants import *
 import sys
 
 # Add the path to your custom UI classes
-sys.path.append(r"C:\Users\Vishwajit Sarnobat\Desktop\workspace\DAQPersonal\hostui")
+sys.path.append('/home/vishwajitsarnobat/workspace/DAQPersonal/hostui')
 
 # Import your custom UI classes
 from file.file_ui import DAQFileUI
