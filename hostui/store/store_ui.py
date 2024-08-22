@@ -2,16 +2,19 @@ import ttkbootstrap as ttk
 import serial.tools.list_ports
 import serial
 import sys
-from tkinter import messagebox
+import threading
+from tkinter import messagebox, END
 
-sys.path.append('/home/vishwajitsarnobat/workspace/DAQPersonal/hostui')
+# Adjust static path for now
+# sys.path.append(r'C:\Users\Lenovo\Desktop\DAQPersonal-main\DAQPersonal-main\hostui')
 from utils import database_utils, csv_utils, text_utils
 
 class DAQStoreUI:
     def __init__(self, root):
         self.root = root
-        # self.root.title("DAQ Storage Management")
-        # self.root.geometry("1200x800")
+        self.flag = False  # Flag to control background threads
+        self.serial_connection = None  # To keep track of the serial connection
+        self.lock = threading.Lock()  # To ensure thread-safe operations
         self.init_ui()
 
     def init_ui(self):
@@ -54,21 +57,21 @@ class DAQStoreUI:
         self.refresh_btn.pack(side='left', padx=10)
 
     def create_store_buttons(self):
-        self.store_btn = ttk.Button(self.frame4, text="Store to DB", state='disabled', command=self.store)
+        self.store_btn = ttk.Button(self.frame4, text="Store to DB", state='disabled', command=self.start_store_thread)
         self.store_btn.pack(side='left', padx=10)
         self.stop_store_btn = ttk.Button(self.frame4, text="Stop", state='disabled', command=self.stop_store)
         self.stop_store_btn.pack(side='left', padx=10)
-        self.csv_store_btn = ttk.Button(self.frame5, text="Store to CSV", state='disabled', command=self.csv_store)
+        self.csv_store_btn = ttk.Button(self.frame5, text="Store to CSV", state='disabled', command=self.start_csv_store_thread)
         self.csv_store_btn.pack(side='left', padx=10)
         self.csv_stop_btn = ttk.Button(self.frame5, text="Stop", state='disabled', command=self.csv_stop_store)
         self.csv_stop_btn.pack(side='left', padx=10)
-        self.text_store_btn = ttk.Button(self.frame6, text="Store to Text file", state='disabled', command=self.text_store)
+        self.text_store_btn = ttk.Button(self.frame6, text="Store to Text file", state='disabled', command=self.start_text_store_thread)
         self.text_store_btn.pack(side='left', padx=10)
         self.text_stop_btn = ttk.Button(self.frame6, text="Stop", state='disabled', command=self.text_stop_store)
         self.text_stop_btn.pack(side='left', padx=10)
 
     def create_data_displayer(self):
-        self.data_displayer = ttk.Text(self.frame7, height=100, width=150)
+        self.data_displayer = ttk.Text(self.frame7, height=20, width=80)
         self.data_displayer.pack()
 
     def pack_frames(self):
@@ -119,89 +122,150 @@ class DAQStoreUI:
 
     def connect(self):
         if self.connect_btn.cget('text') == "Connect":
-            self.connect_btn['text'] = "Disconnect"
-            self.refresh_btn['state'] = 'disabled'
-            self.default_btn['state'] = 'disabled'
-            self.drop_bd['state'] = 'disabled'
-            self.drop_com['state'] = 'disabled'
-            self.store_btn['state'] = 'active'
-            self.csv_store_btn['state'] = 'active'
-            self.text_store_btn['state'] = 'active'
+            try:
+                self.serial_connection = serial.Serial(self.clicked_com.get(), self.clicked_bd.get())
+                self.connect_btn['text'] = "Disconnect"
+                self.refresh_btn['state'] = 'disabled'
+                self.default_btn['state'] = 'disabled'
+                self.drop_bd['state'] = 'disabled'
+                self.drop_com['state'] = 'disabled'
+                self.store_btn['state'] = 'active'
+                self.csv_store_btn['state'] = 'active'
+                self.text_store_btn['state'] = 'active'
+            except serial.SerialException as e:
+                messagebox.showerror("Connection Error", f"Failed to connect to {self.clicked_com.get()}.\nError: {e}")
         else:
-            self.connect_btn['text'] = "Connect"
-            self.refresh_btn['state'] = 'active'
-            self.default_btn['state'] = 'active'
-            self.drop_bd['state'] = 'active'
-            self.drop_com['state'] = 'active'
-            self.csv_store_btn['state'] = 'disabled'
-            self.text_store_btn['state'] = 'disabled'
-            self.store_btn['state'] = 'disabled'
+            self.disconnect()
+
+    def disconnect(self):
+        if self.serial_connection and self.serial_connection.is_open:
+            self.serial_connection.close()
+        self.connect_btn['text'] = "Connect"
+        self.refresh_btn['state'] = 'active'
+        self.default_btn['state'] = 'active'
+        self.drop_bd['state'] = 'active'
+        self.drop_com['state'] = 'active'
+        self.csv_store_btn['state'] = 'disabled'
+        self.text_store_btn['state'] = 'disabled'
+        self.store_btn['state'] = 'disabled'
+
+    def start_store_thread(self):
+        if not self.flag:
+            self.flag = True
+            self.store_thread = threading.Thread(target=self.store)
+            self.store_thread.start()
 
     def store(self):
         self.stop_store_btn['state'] = 'active'
         self.store_btn['state'] = 'disabled'
         serial_port = self.clicked_com.get()
         baud_rate = self.clicked_bd.get()
-        ser = serial.Serial(serial_port, baud_rate)
+        try:
+            ser = serial.Serial(serial_port, baud_rate)
+        except serial.SerialException as e:
+            messagebox.showerror("Serial Error", f"Failed to connect to {serial_port}. Error: {e}")
+            self.stop_store_btn['state'] = 'disabled'
+            self.store_btn['state'] = 'active'
+            return
+
         messagebox.showinfo("Storing initiated", "Storing pin data into the database ...")
         database_utils.database_connect()
-        flag = True
-        while flag:
-            self.display(database_utils.database_store(self.read_serial(ser)))
+        while self.flag:
+            data = self.read_serial(ser)
+            self.display(data)
+            database_utils.database_store(data)
             self.root.update()
         database_utils.database_disconnect()
+        ser.close()
+        self.stop_store_btn['state'] = 'disabled'
+        self.store_btn['state'] = 'active'
 
     def stop_store(self):
-        global flag
-        flag = False
-        self.store_btn['state'] = 'active'
-        self.stop_store_btn['state'] = 'disabled'
+        with self.lock:
+            self.flag = False
+
+    def start_csv_store_thread(self):
+        if not self.flag:
+            self.flag = True
+            self.csv_store_thread = threading.Thread(target=self.csv_store)
+            self.csv_store_thread.start()
 
     def csv_store(self):
         self.csv_stop_btn['state'] = 'active'
         self.csv_store_btn['state'] = 'disabled'
         serial_port = self.clicked_com.get()
         baud_rate = self.clicked_bd.get()
-        ser = serial.Serial(serial_port, baud_rate)
-        messagebox.showinfo("Storing initiated", "Storing pin data into the output.csv ...")
-        flag = True
-        while flag:
-            self.display(csv_utils.store(self.read_serial(ser)))
-            self.root.update()
+        try:
+            ser = serial.Serial(serial_port, baud_rate)
+        except serial.SerialException as e:
+            messagebox.showerror("Serial Error", f"Failed to connect to {serial_port}. Error: {e}")
+            self.csv_stop_btn['state'] = 'disabled'
+            self.csv_store_btn['state'] = 'active'
+            return
 
-    def csv_stop_store(self):
-        global flag
-        flag = False
+        messagebox.showinfo("Storing initiated", "Storing pin data into the output.csv ...")
+        while self.flag:
+            data = self.read_serial(ser)
+            self.display(data)
+            csv_utils.store(data)
+            self.root.update()
+        ser.close()
         self.csv_stop_btn['state'] = 'disabled'
         self.csv_store_btn['state'] = 'active'
+
+    def csv_stop_store(self):
+        with self.lock:
+            self.flag = False
+
+    def start_text_store_thread(self):
+        if not self.flag:
+            self.flag = True
+            self.text_store_thread = threading.Thread(target=self.text_store)
+            self.text_store_thread.start()
 
     def text_store(self):
         self.text_stop_btn['state'] = 'active'
         self.text_store_btn['state'] = 'disabled'
         serial_port = self.clicked_com.get()
         baud_rate = self.clicked_bd.get()
-        ser = serial.Serial(serial_port, baud_rate)
-        messagebox.showinfo("Storing initiated", "Storing pin data into the output.txt ...")
-        flag = True
-        while flag:
-            self.display(text_utils.store(self.read_serial(ser)))
-            self.root.update()
+        try:
+            ser = serial.Serial(serial_port, baud_rate)
+        except serial.SerialException as e:
+            messagebox.showerror("Serial Error", f"Failed to connect to {serial_port}. Error: {e}")
+            self.text_stop_btn['state'] = 'disabled'
+            self.text_store_btn['state'] = 'active'
+            return
 
-    def text_stop_store(self):
-        global flag
-        flag = False
+        messagebox.showinfo("Storing initiated", "Storing pin data into the output.txt ...")
+        while self.flag:
+            data = self.read_serial(ser)
+            self.display(data)
+            text_utils.store(data)
+            self.root.update()
+        ser.close()
         self.text_stop_btn['state'] = 'disabled'
         self.text_store_btn['state'] = 'active'
 
-    def read_serial(ser):
-        line = ser.readline()
-        decoded_line = line.decode('utf-8')
-        return decoded_line
-    
+    def text_stop_store(self):
+        with self.lock:
+            self.flag = False
+
+    def read_serial(self, ser):
+        try:
+            line = ser.readline()
+            decoded_line = line.decode('utf-8')
+            return decoded_line
+        except serial.SerialException as e:
+            messagebox.showerror("Serial Error", f"Failed to read from serial port. Error: {e}")
+            self.disconnect()
+            return ""
+
     def display(self, data):
-        self.data_displayer.insert('end', data)
+        self.root.after(0, lambda: self.data_displayer.insert(END, data))
+        self.root.after(0, lambda: self.data_displayer.yview(END))
 
 if __name__ == "__main__":
     root = ttk.Window(themename='superhero')
     DAQStoreUI(root)
+    root.protocol("WM_DELETE_WINDOW", lambda: sys.exit(0))  # Ensure clean exit
     root.mainloop()
